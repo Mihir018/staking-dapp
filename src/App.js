@@ -3,7 +3,7 @@ import { ethers } from 'ethers';
 import StakingContractABI from './StakingContractABI.json';
 import './App.css'; // Import the CSS file
 
-const contractAddress = '0x92D6CC7d18789F00856A8E66D2E37B756C675a43'; // Replace with your actual contract address
+const contractAddress = '0x92D6CC7d18789F00856A8E66D2E37B756C675a43';
 
 function StakingApp() {
   const [contract, setContract] = useState(null);
