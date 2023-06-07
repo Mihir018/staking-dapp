@@ -21,10 +21,8 @@ function StakingApp() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Initialize the contract
     async function initialize() {
       try {
-        // Check if the wallet is connected
         if (window.ethereum && window.ethereum.selectedAddress) {
           await loadContract(window.ethereum);
         }
@@ -82,21 +80,13 @@ function StakingApp() {
   const handleMint = async () => {
     try {
       setLoading(true);
-
-      // Convert the mintAmount to ethers.js BigNumber
-      const amount = ethers.utils.parseUnits(mintAmount.toString(), 18);
-
-      // Call the mint function on the contract
+  
       const tx = await contract.mint(account, mintAmount);
       await tx.wait();
-
-      // Refresh the account balance and total supply
       const balance = await contract.balanceOf(account);
       const totalSupply = await contract.totalSupply();
       setBalance(balance.toNumber());
       setTotalSupply(totalSupply.toNumber());
-
-      // Reset the mint amount input field
       setMintAmount(0);
     } catch (error) {
       setError(error.message);
@@ -108,11 +98,8 @@ function StakingApp() {
   const handleStake = async () => {
     try {
       setLoading(true);
-      // Call the stake function
       const tx = await contract.stake(stakeAmount);
       await tx.wait();
-
-      // Refresh the account balance, staked amount, and rewards
       const balance = await contract.balanceOf(account);
       const stakedAmount = await contract.stakedAmount(account);
       const rewards = await contract.totalRewards(account);
@@ -120,7 +107,6 @@ function StakingApp() {
       setStakedAmount(stakedAmount.toNumber());
       setRewards(rewards.toNumber());
 
-      // Reset the stake amount input field
       setStakeAmount(0);
     } catch (error) {
       setError(error.message);
@@ -133,11 +119,9 @@ function StakingApp() {
     try {
       setLoading(true);
 
-      // Call the unstake function
       const tx = await contract.unstake(unstakeAmount);
       await tx.wait();
 
-      // Refresh the account balance, staked amount, and rewards
       const balance = await contract.balanceOf(account);
       const stakedAmount = await contract.stakedAmount(account);
       const rewards = await contract.totalRewards(account);
@@ -145,7 +129,6 @@ function StakingApp() {
       setStakedAmount(stakedAmount.toNumber());
       setRewards(rewards.toNumber());
 
-      // Reset the unstake amount input field
       setUnstakeAmount(0);
     } catch (error) {
       setError(error.message);
@@ -158,11 +141,9 @@ function StakingApp() {
     try {
       setLoading(true);
 
-      // Call the claimRewards function
       const tx = await contract.claimRewards();
       await tx.wait();
 
-      // Refresh the account balance, staked amount, and rewards
       const balance = await contract.balanceOf(account);
       const stakedAmount = await contract.stakedAmount(account);
       const rewards = await contract.totalRewards(account);
