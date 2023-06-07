@@ -3,7 +3,7 @@ import { ethers } from 'ethers';
 import StakingContractABI from './StakingContractABI.json';
 import './App.css'; // Import the CSS file
 
-const contractAddress = '0x2DC30696313315D3b8CB77726BE340e307468544'; // Replace with your actual contract address
+const contractAddress = '0x92D6CC7d18789F00856A8E66D2E37B756C675a43'; // Replace with your actual contract address
 
 function StakingApp() {
   const [contract, setContract] = useState(null);
@@ -13,8 +13,10 @@ function StakingApp() {
   const [rewards, setRewards] = useState(0);
   const [stakeAmount, setStakeAmount] = useState(0);
   const [unstakeAmount, setUnstakeAmount] = useState(0);
+  const [mintAmount, setMintAmount] = useState(0);
   const [name, setName] = useState('');
   const [symbol, setSymbol] = useState('');
+  const [totalSupply, setTotalSupply] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -56,13 +58,14 @@ function StakingApp() {
     const rewards = await contract.totalRewards(address);
     const name = await contract.name();
     const symbol = await contract.symbol();
+    const totalSupply = await contract.totalSupply();
     setBalance(balance.toNumber());
     setStakedAmount(stakedAmount.toNumber());
     setRewards(rewards.toNumber());
     setName(name);
     setSymbol(symbol);
+    setTotalSupply(totalSupply.toNumber());
   };
-  
 
   const connectWallet = async () => {
     try {
@@ -76,10 +79,35 @@ function StakingApp() {
     }
   };
 
+  const handleMint = async () => {
+    try {
+      setLoading(true);
+
+      // Convert the mintAmount to ethers.js BigNumber
+      const amount = ethers.utils.parseUnits(mintAmount.toString(), 18);
+
+      // Call the mint function on the contract
+      const tx = await contract.mint(account, mintAmount);
+      await tx.wait();
+
+      // Refresh the account balance and total supply
+      const balance = await contract.balanceOf(account);
+      const totalSupply = await contract.totalSupply();
+      setBalance(balance.toNumber());
+      setTotalSupply(totalSupply.toNumber());
+
+      // Reset the mint amount input field
+      setMintAmount(0);
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleStake = async () => {
     try {
       setLoading(true);
-      console.log(stakeAmount);
       // Call the stake function
       const tx = await contract.stake(stakeAmount);
       await tx.wait();
@@ -94,28 +122,6 @@ function StakingApp() {
 
       // Reset the stake amount input field
       setStakeAmount(0);
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleClaimRewards = async () => {
-    try {
-      setLoading(true);
-
-      // Call the claimRewards function
-      const tx = await contract.claimRewards();
-      await tx.wait();
-
-      // Refresh the account balance, staked amount, and rewards
-      const balance = await contract.balanceOf(account);
-      const stakedAmount = await contract.stakedAmount(account);
-      const rewards = await contract.totalRewards(account);
-      setBalance(balance.toNumber());
-      setStakedAmount(stakedAmount.toNumber());
-      setRewards(rewards.toNumber());
     } catch (error) {
       setError(error.message);
     } finally {
@@ -148,9 +154,31 @@ function StakingApp() {
     }
   };
 
+  const handleClaimRewards = async () => {
+    try {
+      setLoading(true);
+
+      // Call the claimRewards function
+      const tx = await contract.claimRewards();
+      await tx.wait();
+
+      // Refresh the account balance, staked amount, and rewards
+      const balance = await contract.balanceOf(account);
+      const stakedAmount = await contract.stakedAmount(account);
+      const rewards = await contract.totalRewards(account);
+      setBalance(balance.toNumber());
+      setStakedAmount(stakedAmount.toNumber());
+      setRewards(rewards.toNumber());
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="staking-app">
-      <h1>Staking App</h1>
+      <h1>Staking DApp</h1>
       {error && <p className="error-message">Error: {error}</p>}
       {!account ? (
         <button className="connect-button" onClick={connectWallet}>
@@ -163,6 +191,19 @@ function StakingApp() {
           <p>Staked Amount: {stakedAmount} {symbol}</p>
           <p>Rewards: {rewards}</p>
           <div className="staking-section">
+            <input
+              type="number"
+              className="mint-input"
+              value={mintAmount}
+              onChange={(e) => setMintAmount(e.target.value)}
+            />
+            <button
+              className="action-button stake-button"
+              onClick={handleMint}
+              disabled={loading}
+            >
+              Mint
+            </button>
             <input
               type="number"
               className="stake-input"
